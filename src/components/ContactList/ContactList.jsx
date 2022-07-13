@@ -1,31 +1,69 @@
-import PropTypes from 'prop-types';
+import { useMemo } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { getContactsItems, removeContact } from 'redux/contacts/slice';
+import { getFilterValue } from 'redux/filter/slice';
+import sortContactsByName from 'utils/sortContactsByName';
 import ContactItem from 'components/ContactItem';
-import { TotalContactsText, TotalContactsNum, PhonebookList, ListElement, NotificationText } from './ContactList.styled';
+import {
+    TotalContactsText, TotalContactsNum,
+    PhonebookList, ListElement, NoMatchesText,
+    NoContactsText,
+} from './ContactList.styled';
 
-export default function ContactList({ contacts, contactsAmount, onDeleteContact }) {
-    return (
-        contactsAmount > 0
-        ? <>
-            <TotalContactsText>Contacts amount: <TotalContactsNum>{contactsAmount}</TotalContactsNum></TotalContactsText>
-            <PhonebookList>
-                {contacts.map(({ id, name, number }) =>
+export default function ContactList() {
+    const contacts = useSelector(getContactsItems);
+    const filterValue = useSelector(getFilterValue);
+    const dispatch = useDispatch();
+
+    const totalContactsAmount = contacts.length;
+    
+    const getVisibleContacts = useMemo(
+        () => () => {
+            const normalizedFilter = filterValue.toLowerCase().trim();
+            return contacts
+                .filter(
+                    contact =>
+                        contact.name.toLowerCase().includes(normalizedFilter) ||
+                        contact.numder.includes(normalizedFilter)
+                )
+                .sort(sortContactsByName);
+        },
+        [contacts, filterValue]
+    );
+
+    const visibleContacts = getVisibleContacts();
+
+    const onDeleteContact = contactId => {
+        dispatch(removeContact(contactId));
+    };
+
+    
+    return totalContactsAmount > 0 ? (
+            <>
+                <TotalContactsText> Contacts amount:{' '}
+                    <TotalContactsNum>{totalContactsAmount}</TotalContactsNum>
+                </TotalContactsText>
+
+                <PhonebookList>
+                    {visibleContacts.length ? (
+                    visibleContacts.map(({ id, name, number }) => (
+                    
                     <ListElement key={id}>
-                        <ContactItem id={id} name={name} number={number} onDeleteContact={onDeleteContact} />
-                    </ListElement>)}
+                        <ContactItem
+                            id={id}
+                            name={name}
+                            number={number}
+                            onDelete={onDeleteContact} />
+                        </ListElement>
+                        
+                ))
+                ) : (
+                    <NoMatchesText>No contact matches</NoMatchesText>
+                )}
             </PhonebookList>
-          </>
-        : <NotificationText>There are no contacts in your phonebook</NotificationText>
+
+            </>
+            ) : (<NoContactsText>There are no contacts in your phonebook</NoContactsText>
     );
 };
 
-ContactList.propTypes = {
-    contacts: PropTypes.arrayOf(
-        PropTypes.shape({
-            id: PropTypes.string,
-            name: PropTypes.string,
-            number: PropTypes.string,
-        })
-    ),
-    contactsAmount: PropTypes.number.isRequired,
-    onDeleteContact: PropTypes.func.isRequired,
-};

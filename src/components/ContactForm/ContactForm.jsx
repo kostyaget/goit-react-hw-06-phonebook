@@ -1,11 +1,25 @@
 import { useState } from 'react';
-import PropTypes from 'prop-types';
-import { nanoid } from 'nanoid';
-import { FormWrapper, ContactSubmitForm, FormInputLabel, FormInput, FormSubmitBtn } from './ContactForm.styled';
+import { useSelector, useDispatch } from 'react-redux';
+import { nanoid } from '@reduxjs/toolkit';
+import { getContactsItems, addContact } from 'redux/contacts/slice';
+import { showInfoMessage, showSuccessMessage } from 'utils/notifications';
+import {
+  FormWrapper,
+  ContactSubmitForm,
+  FormInputLabel,
+  FormInput,
+  FormSubmitBtn,
+} from './ContactForm.styled';
 
-export default function ContactForm({ onSubmit }) {
+export default function ContactForm() {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
+
+  const contacts = useSelector(getContactsItems);
+  const dispatch = useDispatch();
+
+  const nameInputId = nanoid();
+  const numberInputId = nanoid();
 
   const onNameChange = evt => {
     setName(evt.currentTarget.value);
@@ -22,16 +36,28 @@ export default function ContactForm({ onSubmit }) {
 
   const onContactFormSubmit = evt => {
     evt.preventDefault();
-    const contact = {
-      name,
-      number
-    };
-    onSubmit(contact);
+    
+      if (
+      contacts.find(
+        contact =>
+          contact.name.toLowerCase() === name.toLowerCase() &&
+          contact.number === number
+      )
+    ) {
+      showInfoMessage('This contact is already in your phonebook');
+      return;
+    }
+
+    if (contacts.find(contact => contact.number === number)) {
+      showInfoMessage('This phone number is already in your phonebook');
+      return;
+    }
+
+    dispatch(addContact({ name, number }));
+    showSuccessMessage('New contact has been added in your phonebook');
     formReset();
   };
 
-  const nameInputId = nanoid();
-  const numberInputId = nanoid();
 
   return (
     <FormWrapper>
@@ -70,6 +96,3 @@ export default function ContactForm({ onSubmit }) {
   );
 };
 
-ContactForm.propTypes = {
-    onSubmit: PropTypes.func.isRequired,
-};
