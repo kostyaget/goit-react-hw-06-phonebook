@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { nanoid } from '@reduxjs/toolkit';
 import { getContactsItems, addContact } from 'redux/contacts/slice';
-import { showInfoMessage, showSuccessMessage } from 'utils/notifications';
+import { showInfoMessage, showSuccessMessage } from 'utils/notofications';
 import {
   FormWrapper,
   ContactSubmitForm,
@@ -36,8 +36,8 @@ export default function ContactForm() {
 
   const onContactFormSubmit = evt => {
     evt.preventDefault();
-    
-      if (
+
+    if (
       contacts.find(
         contact =>
           contact.name.toLowerCase() === name.toLowerCase() &&
