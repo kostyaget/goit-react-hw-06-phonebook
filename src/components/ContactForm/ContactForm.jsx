@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSelector} from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { nanoid } from '@reduxjs/toolkit';
 import { getContactsItems, addContact } from 'redux/contacts/slice';
 import { showInfoMessage, showSuccessMessage, showErrorMessage } from 'utils/notofications';
@@ -13,60 +13,41 @@ import {
 
 export default function ContactForm() {
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [number, setNumber] = useState('');
 
   const contacts = useSelector(getContactsItems);
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
   const nameInputId = nanoid();
-  const phoneInputId = nanoid();
+  const numberInputId = nanoid();
 
   const onNameChange = evt => {
     setName(evt.currentTarget.value);
   };
 
   const onNumberChange = evt => {
-    setPhone(evt.currentTarget.value);
+    setNumber(evt.currentTarget.value);
   };
 
   const formReset = () => {
     setName('');
-    setPhone('');
+    setNumber('');
   };
 
-  const onContactFormSubmit = async evt => {
-    evt.preventDefault();
-
+  const onContactFormSubmit = event => {
+    event.preventDefault();
+    const addContact = { name, number };
     if (
       contacts.find(
-        contact =>
-          contact.name.toLowerCase() === name.toLowerCase() &&
-          contact.phone === phone
+        contact => contact.name.toLowerCase() === name.toLowerCase()
       )
     ) {
-      showInfoMessage('This contact is already in your phonebook');
+      showInfoMessage(`${name} is already in contacts`);
       return;
     }
-
-    if (contacts.find(contact => contact.phone === phone)) {
-      showInfoMessage('This phone number is already in your phonebook');
-      return;
-    }
-
-    const newContact = {
-      name,
-      phone,
-    };
-
-    try {
-      await addContact(newContact);
-      showSuccessMessage('New contact has been added in your phonebook');
-    } catch (error) {
-      console.log(error.message);
-      showErrorMessage('Something goes wrong, new contact was not created');
-    }
-
-    formReset();
+    dispatch(addContact({ name, number }));
+    showSuccessMessage('New contact has been added in your phonebook');
+    formReset()
   };
 
   return (
@@ -86,7 +67,7 @@ export default function ContactForm() {
             required
           />
         </FormInputLabel>
-        <FormInputLabel htmlFor={phoneInputId}>
+        <FormInputLabel htmlFor={numberInputId}>
           Number
           <FormInput
             type="tel"
@@ -94,9 +75,9 @@ export default function ContactForm() {
             placeholder="Type number here"
             pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-            value={phone}
+            value={number}
             onChange={onNumberChange}
-            id={phoneInputId}
+            id={numberInputId}
             required
           />
         </FormInputLabel>
