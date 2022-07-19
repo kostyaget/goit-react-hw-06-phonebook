@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector} from 'react-redux';
 import { nanoid } from '@reduxjs/toolkit';
 import { getContactsItems, addContact } from 'redux/contacts/slice';
-import { showInfoMessage, showSuccessMessage } from 'utils/notofications';
+import { showInfoMessage, showSuccessMessage, showErrorMessage } from 'utils/notofications';
 import {
   FormWrapper,
   ContactSubmitForm,
@@ -13,51 +13,61 @@ import {
 
 export default function ContactForm() {
   const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+  const [phone, setPhone] = useState('');
 
   const contacts = useSelector(getContactsItems);
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
 
   const nameInputId = nanoid();
-  const numberInputId = nanoid();
+  const phoneInputId = nanoid();
 
   const onNameChange = evt => {
     setName(evt.currentTarget.value);
   };
 
   const onNumberChange = evt => {
-    setNumber(evt.currentTarget.value);
+    setPhone(evt.currentTarget.value);
   };
 
   const formReset = () => {
     setName('');
-    setNumber('');
+    setPhone('');
   };
 
-  const onContactFormSubmit = evt => {
+  const onContactFormSubmit = async evt => {
     evt.preventDefault();
 
     if (
       contacts.find(
         contact =>
           contact.name.toLowerCase() === name.toLowerCase() &&
-          contact.number === number
+          contact.phone === phone
       )
     ) {
       showInfoMessage('This contact is already in your phonebook');
       return;
     }
 
-    if (contacts.find(contact => contact.number === number)) {
+    if (contacts.find(contact => contact.phone === phone)) {
       showInfoMessage('This phone number is already in your phonebook');
       return;
     }
 
-    dispatch(addContact({ name, number }));
-    showSuccessMessage('New contact has been added in your phonebook');
+    const newContact = {
+      name,
+      phone,
+    };
+
+    try {
+      await addContact(newContact);
+      showSuccessMessage('New contact has been added in your phonebook');
+    } catch (error) {
+      console.log(error.message);
+      showErrorMessage('Something goes wrong, new contact was not created');
+    }
+
     formReset();
   };
-
 
   return (
     <FormWrapper>
@@ -76,7 +86,7 @@ export default function ContactForm() {
             required
           />
         </FormInputLabel>
-        <FormInputLabel htmlFor={numberInputId}>
+        <FormInputLabel htmlFor={phoneInputId}>
           Number
           <FormInput
             type="tel"
@@ -84,9 +94,9 @@ export default function ContactForm() {
             placeholder="Type number here"
             pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
-            value={number}
+            value={phone}
             onChange={onNumberChange}
-            id={numberInputId}
+            id={phoneInputId}
             required
           />
         </FormInputLabel>
