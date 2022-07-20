@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { nanoid } from '@reduxjs/toolkit';
-import { getContactsItems, addContact } from 'redux/contacts/slice';
-import { showInfoMessage, showSuccessMessage, showErrorMessage } from 'utils/notofications';
+import { getContactsItems} from 'redux/contacts/slice';
+import { showInfoMessage, showSuccessMessage} from 'utils/notofications';
 import {
   FormWrapper,
   ContactSubmitForm,
