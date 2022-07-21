@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { nanoid } from '@reduxjs/toolkit';
-import { getContactsItems} from 'redux/contacts/slice';
+import { getContactsItems, addContact} from 'redux/contacts/slice';
 import { showInfoMessage, showSuccessMessage} from 'utils/notofications';
 import {
   FormWrapper,
@@ -36,7 +36,6 @@ export default function ContactForm() {
 
   const onContactFormSubmit = event => {
     event.preventDefault();
-    // const addContact = { name, number };
     if (
       contacts.find(
         contact => contact.name.toLowerCase() === name.toLowerCase()
@@ -45,7 +44,7 @@ export default function ContactForm() {
       showInfoMessage(`${name} is already in contacts`);
       return;
     }
-    dispatch({ name, number });
+    dispatch(addContact({ name, number }));
     showSuccessMessage('New contact has been added in your phonebook');
     formReset()
   };
